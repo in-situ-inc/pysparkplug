@@ -134,11 +134,15 @@ class TestScalarTypes(unittest.TestCase):
                         decoded, value, f"Failed to encode/decode {value} with {dtype}"
                     )
 
-    def test_decoder_errors(self) -> None:
-        with self.assertRaises(OverflowError):
-            # too large
-            DataType.INT8.decode(2**9)
+    def test_decoding_sign_extended_values(self):
+        value = -87
+        signExtendedValue = (
+            value & 0xFFFFFFFF  # packed into uint32 for Google Protobuf
+        )
+        decoded = DataType.INT16.decode(signExtendedValue)
+        self.assertEqual(decoded, value)
 
+    def test_decoder_errors(self) -> None:
         with self.assertRaises(ValueError):
             # not enough bytes
             DataType.INT16_ARRAY.decode(b"\x00")

@@ -122,10 +122,13 @@ def _int_encoder(value: int, bits: int) -> int:
 
 
 def _int_decoder(value: int, bits: int) -> int:
-    max_val: int = 2**bits
-    if not 0 <= value < max_val:
-        raise OverflowError(f"Int{bits} overflow with value {value}")
-    return value - (max_val if value >= 2 ** (bits - 1) else 0)
+    mask = (1 << bits) - 1  # e.g. 0xFFFF for 16 bits
+    value &= mask  # drop any higher bits
+    sign_bit = 1 << (bits - 1)  # e.g. 0x8000 for 16 bits
+    if value & sign_bit:  # if sign bit is set
+        value -= 1 << bits
+
+    return value
 
 
 def _encode_numeric_array(values: Sequence[float], format_char: str) -> bytes:
